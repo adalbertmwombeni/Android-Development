@@ -13,6 +13,7 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,14 +64,20 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 dispatchTakepicture();
                 //Test
+                Toast.makeText(MainActivity.this, "Camera is clicked", Toast.LENGTH_SHORT).show();
                 Intent camera = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(camera, CAMERA_REQUEST_CODE);
+                //startActivityForResult(camera, CAMERA_REQUEST_CODE);
+                openCamera();
                 //Test
             }
         });
 
 
 
+    }
+    private  void openCamera(){
+        Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(camera, CAMERA_REQUEST_CODE);
     }
 
     private void dispatchTakepicture(){

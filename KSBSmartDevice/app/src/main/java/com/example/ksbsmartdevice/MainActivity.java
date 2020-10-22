@@ -2,51 +2,29 @@ package com.example.ksbsmartdevice;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
-import android.media.MediaMetadataRetriever;
-import android.nfc.Tag;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+
 import androidx.core.content.FileProvider;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.mobile.client.AWSMobileClient;
 //import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 //import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 //import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 //import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 //import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.util.IOUtils;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -56,6 +34,19 @@ public class MainActivity extends AppCompatActivity {
     ImageView selectedImage;
     Button cameraBtn, galleryBtn;
     String currentPhotoPath;
+
+    private File createdImageFile() throws IOException{
+        //create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "png_"+ timeStamp + "_";
+        //File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFileName, ".png", storageDir);
+
+        //save a file: path for use with ACTION_VIEW intents
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
 
 
     @Override
@@ -70,33 +61,43 @@ public class MainActivity extends AppCompatActivity {
         cameraBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //askCameraPermissions();
+                dispatchTakepicture();
+                //Test
                 Intent camera = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(camera, CAMERA_REQUEST_CODE);
+                //Test
             }
         });
 
-        galleryBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(gallery, GALLERY_REQUEST_CODE);
-            }
-        });
+
 
     }
 
-    private void askCameraPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERM_CODE);
-        } else {
-            //dispatchTakePictureIntent();
-            //System.out.println("Test");
+    private void dispatchTakepicture(){
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        //Ensure that there is a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null){
+            ////create the file where the photo should go
+            File photoFile = null;
+            try{
+                createdImageFile();
+            }catch (IOException ex){
+
+            }
+            //continue only if the File was successful created
+            if (photoFile != null){
+                Uri photoURI = FileProvider.getUriForFile(this, "KSBSmartDevice", photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+            }
         }
-
     }
-
 }
+
+
+
+
+
 
 
 

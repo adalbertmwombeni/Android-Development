@@ -90,17 +90,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAMERA_REQUEST_CODE) {
-            File photoFile = null;
-            if (resultCode == Activity.RESULT_OK) {
+            if (resultCode == Activity.RESULT_OK){
+                File f = new File(currentPhotoPath);
+                selectedImage.setImageURI(Uri.fromFile(f));
 
-                try {
-                    //Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
-                    createImageFile();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+                Log.d("tag", "Absolute Url of image is " +Uri.fromFile(f));
             }
 
         }
@@ -136,7 +130,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(MainActivity.this, "Camera is clicked", Toast.LENGTH_SHORT).show();
-                openCamera();
+                //openCamera();
+                dispatchTakePictureIntent();
 
             }
         });
@@ -148,6 +143,23 @@ public class MainActivity extends AppCompatActivity {
         Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(camera, CAMERA_REQUEST_CODE);
 
+    }
+
+    private void dispatchTakePictureIntent(){
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null){
+
+            File photoFile = null;
+            try {
+                createImageFile();
+            } catch (IOException ex) {
+            }
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+            }
+        }
     }
 
 }

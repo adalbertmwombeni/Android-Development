@@ -89,15 +89,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK){
-                File f = new File(currentPhotoPath);
-                selectedImage.setImageURI(Uri.fromFile(f));
+        //if (requestCode == CAMERA_REQUEST_CODE) {
+        //if (resultCode == Activity.RESULT_OK){
+        //File f = new File(currentPhotoPath);
+        //selectedImage.setImageURI(Uri.fromFile(f));
 
-                Log.d("tag", "Absolute Url of image is " +Uri.fromFile(f));
-            }
+        //Log.d("tag", "Absolute Url of image is " +Uri.fromFile(f));
+        //}
 
-        }
+        //}
     }
 
     private void createImageFile() throws IOException {
@@ -114,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
         selectedImage.setImageURI(Uri.fromFile(f));
         Log.d("tag", "ABsolute Url of Image is " + Uri.fromFile(f));
     }
-
 
 
     @Override
@@ -139,29 +138,39 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void openCamera() {
-        Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(camera, CAMERA_REQUEST_CODE);
-
-    }
-
-    private void dispatchTakePictureIntent(){
+    private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null){
-
-            File photoFile = null;
-            try {
-                createImageFile();
-            } catch (IOException ex) {
-            }
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
-            }
+        //startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+        File photoFile = null;
+        try {
+            //startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+            createImageFile();
+            Toast.makeText(MainActivity.this, "The action is successful", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(MainActivity.this, "The exception is thrown", Toast.LENGTH_SHORT).show();
         }
-    }
 
+        if (photoFile != null) {
+            Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+            startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+
+           // if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+
+           //     File photoFile = null;
+            //    try {
+            //        createImageFile();
+            //    } catch (IOException ignored) {
+            //    }
+             //   if (photoFile != null) {
+              //      Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
+              //      takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+               //     startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+             //   }
+          //  }
+        }
+
+    }
 }
 
 

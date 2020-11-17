@@ -63,6 +63,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
+import com.amazonaws.services.s3.AmazonS3Client;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -85,10 +90,33 @@ public class MainActivity extends AppCompatActivity {
     ImageView selectedImage;
     Button cameraBtn, galleryBtn;
     String currentPhotoPath;
+    private final String KEY = "A";
+    private final String SECRET = "B";
+    private BasicAWSCredentials credentials;
+    private AmazonS3Client s3Client;
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == CAMERA_REQUEST_CODE){
+            if(resultCode == Activity.RESULT_OK){
+                File f = new File(currentPhotoPath);
+                selectedImage.setImageURI(Uri.fromFile(f));
+                Log.d("tag", "ABsolute Url of Image is " + Uri.fromFile(f));
+                Toast.makeText(MainActivity.this, "====The path is also available==", Toast.LENGTH_SHORT).show();
+
+                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                Uri contentUri = Uri.fromFile(f);
+                mediaScanIntent.setData(contentUri);
+                this.sendBroadcast(mediaScanIntent);
+                Toast.makeText(MainActivity.this, "====>>>> The content is sent", Toast.LENGTH_SHORT).show();
+                credentials = new BasicAWSCredentials(KEY, SECRET);
+                s3Client = new AmazonS3Client(credentials);
+                uploadToAWS(f.getName(), contentUri);
+            }
+
+        }
         //if (requestCode == CAMERA_REQUEST_CODE) {
         //if (resultCode == Activity.RESULT_OK){
         //File f = new File(currentPhotoPath);
@@ -98,6 +126,16 @@ public class MainActivity extends AppCompatActivity {
         //}
 
         //}
+    }
+
+    private void uploadToAWS(String name, Uri contentUri) {
+    TransferUtility transferUtility =
+            TransferUtility.builder()
+            .context(getApplicationContext())
+            .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())
+            .s3Client(s3Client)
+            .build();
+
     }
 
     private File createImageFile() throws IOException {
@@ -114,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Save a file: path for use with ACTION_VIEW intents
         currentPhotoPath = image.getAbsolutePath();
+        System.out.println("image");
         return image;
     }
 
@@ -183,6 +222,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
             }
         }
+
+
     }
 }
 

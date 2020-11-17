@@ -76,11 +76,12 @@ import java.util.Date;
 import javax.security.auth.login.LoginException;
 
 
-//import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
-//import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
-//import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
-//import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
-//import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.util.IOUtils;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -90,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
     ImageView selectedImage;
     Button cameraBtn, galleryBtn;
     String currentPhotoPath;
-    private final String KEY = "A";
-    private final String SECRET = "B";
+    private final String KEY = "AKIAS235O3R5GCMO33GX";
+    private final String SECRET = "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";
     private BasicAWSCredentials credentials;
     private AmazonS3Client s3Client;
 
@@ -113,7 +114,9 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "====>>>> The content is sent", Toast.LENGTH_SHORT).show();
                 credentials = new BasicAWSCredentials(KEY, SECRET);
                 s3Client = new AmazonS3Client(credentials);
-                uploadToAWS(f.getName(), contentUri);
+                uploadToAWS(f.getName(), Uri.fromFile(f));
+                Toast.makeText(MainActivity.this, "==DONE==", Toast.LENGTH_SHORT).show();
+
             }
 
         }
@@ -127,14 +130,36 @@ public class MainActivity extends AppCompatActivity {
 
         //}
     }
-
-    private void uploadToAWS(String name, Uri contentUri) {
+    // final Uri contentUri
+    private void uploadToAWS(String name, final Uri contentUri) {
     TransferUtility transferUtility =
             TransferUtility.builder()
             .context(getApplicationContext())
-            .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())
+            .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())   //"name", new File("Uri")
             .s3Client(s3Client)
             .build();
+    TransferObserver uploadobserver =
+            transferUtility.upload("orsstorage1", name, contentUri);
+    uploadobserver.setTransferListener(new TransferListener() {
+        @Override
+        public void onStateChanged(int id, TransferState state) {
+            if (TransferState.COMPLETED==state){
+                Toast.makeText(MainActivity.this, "Upload completed", Toast.LENGTH_SHORT).show();
+            }else if (TransferState.FAILED ==state){
+                Toast.makeText(MainActivity.this, "FAILED", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+
+        }
+
+        @Override
+        public void onError(int id, Exception ex) {
+
+        }
+    });
 
     }
 

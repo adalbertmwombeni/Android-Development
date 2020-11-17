@@ -100,6 +100,24 @@ public class MainActivity extends AppCompatActivity {
         //}
     }
 
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "PNG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        //File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".png",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    /*
     private void createImageFile() throws IOException {
         //create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -109,12 +127,14 @@ public class MainActivity extends AppCompatActivity {
         File image = File.createTempFile(imageFileName, ".png", storageDir);
 
         //save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
-        File f = new File(currentPhotoPath);
-        selectedImage.setImageURI(Uri.fromFile(f));
-        Log.d("tag", "ABsolute Url of Image is " + Uri.fromFile(f));
-    }
+        ////currentPhotoPath = image.getAbsolutePath();
+        ////File f = new File(currentPhotoPath);
+        ////selectedImage.setImageURI(Uri.fromFile(f));
+        ///Log.d("tag", "ABsolute Url of Image is " + Uri.fromFile(f));
 
+
+    }
+*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,36 +160,29 @@ public class MainActivity extends AppCompatActivity {
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        //startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
-        File photoFile = null;
-        try {
-            //startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
-            createImageFile();
-            Toast.makeText(MainActivity.this, "The action is successful", Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            Toast.makeText(MainActivity.this, "The exception is thrown", Toast.LENGTH_SHORT).show();
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+                Toast.makeText(MainActivity.this, "....File is created....", Toast.LENGTH_SHORT).show();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                Toast.makeText(MainActivity.this, "....Exception is thrown....", Toast.LENGTH_SHORT).show();
+
+            }
+            //Toast.makeText(MainActivity.this, "....please wait....", Toast.LENGTH_SHORT).show();
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Toast.makeText(MainActivity.this, "...I am alread in....", Toast.LENGTH_SHORT).show();
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+            }
         }
-
-        if (photoFile != null) {
-            Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-            startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
-
-           // if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-
-           //     File photoFile = null;
-            //    try {
-            //        createImageFile();
-            //    } catch (IOException ignored) {
-            //    }
-             //   if (photoFile != null) {
-              //      Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
-              //      takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-               //     startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
-             //   }
-          //  }
-        }
-
     }
 }
 

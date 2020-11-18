@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.nfc.Tag;
@@ -28,7 +29,10 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -95,6 +99,9 @@ public class MainActivity extends AppCompatActivity {
     private final String SECRET = "B";
     private BasicAWSCredentials credentials;
     private AmazonS3Client s3Client;
+    private Uri fileUri;
+    String fileName;
+
 
 
     @Override
@@ -109,12 +116,14 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
                 Uri contentUri = Uri.fromFile(f);
+                fileUri = contentUri;
+                fileName = f.getName();
                 mediaScanIntent.setData(contentUri);
                 this.sendBroadcast(mediaScanIntent);
                 Toast.makeText(MainActivity.this, "====>>>> The content is sent", Toast.LENGTH_SHORT).show();
                 credentials = new BasicAWSCredentials(KEY, SECRET);
                 s3Client = new AmazonS3Client(credentials);
-                uploadToAWS(f.getName(), Uri.fromFile(f));
+                uploadToAWS();
                 Toast.makeText(MainActivity.this, "==DONE==", Toast.LENGTH_SHORT).show();
 
             }
@@ -131,36 +140,77 @@ public class MainActivity extends AppCompatActivity {
         //}
     }
     // final Uri contentUri
-    private void uploadToAWS(String name, final Uri contentUri) {
-    TransferUtility transferUtility =
-            TransferUtility.builder()
-            .context(getApplicationContext())
-            .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())   //"name", new File("Uri")
-            .s3Client(s3Client)
-            .build();
-    TransferObserver uploadobserver =
-            transferUtility.upload("orsstorage1", name, contentUri);
-    uploadobserver.setTransferListener(new TransferListener() {
-        @Override
-        public void onStateChanged(int id, TransferState state) {
-            if (TransferState.COMPLETED==state){
-                Toast.makeText(MainActivity.this, "Upload completed", Toast.LENGTH_SHORT).show();
-            }else if (TransferState.FAILED ==state){
-                Toast.makeText(MainActivity.this, "FAILED", Toast.LENGTH_SHORT).show();
-            }
+    private void uploadToAWS() {
+
+        ////
+        Toast.makeText(MainActivity.this, "====NIRAKANANINYIRAKANANI==", Toast.LENGTH_SHORT).show();
+        if (fileUri != null) {
+
+            //final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                   // "/");
+
+
+            //createFile(getApplicationContext(), fileUri, new File(fileName));
+
+            ////
+            Log.d("tag", "the url is  " + fileUri);
+            Log.d("tag", "the file name is  " + currentPhotoPath);
+            Log.d("tag", "the INPUT file is  " + new File(currentPhotoPath));
+            TransferUtility transferUtility =
+                    TransferUtility.builder()
+                            .context(getApplicationContext())
+                            .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())   //"name", new File("Uri")
+                            .s3Client(s3Client)
+                            .build();
+
+            TransferObserver uploadobserver =
+                    transferUtility.upload("orsstorage1","fileUri", new File(currentPhotoPath));
+
+            uploadobserver.setTransferListener(new TransferListener() {
+                @Override
+                public void onStateChanged(int id, TransferState state) {
+                    if (TransferState.COMPLETED == state) {
+                        Toast.makeText(MainActivity.this, "Upload completed", Toast.LENGTH_SHORT).show();
+                    } else if (TransferState.FAILED == state) {
+                        Toast.makeText(MainActivity.this, "FAILED", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+
+                }
+
+                @Override
+                public void onError(int id, Exception ex) {
+
+                }
+            });
+
         }
+    }
 
-        @Override
-        public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+    private String getFileExtension(Uri fileUri) {
+        ContentResolver contentResolver = getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton();
 
+        return mime.getExtensionFromMimeType(contentResolver.getType(fileUri));
+    }
+
+    private void createFile(Context applicationContext, Uri fileUri, File file) {
+        try {
+            Context context = null;
+            Uri srcUri = null;
+            InputStream inputStream = context.getContentResolver().openInputStream(srcUri);
+            if (inputStream == null) return;
+            String dstFile = null;
+            OutputStream outputStream = new FileOutputStream(dstFile);
+            IOUtils.copy(inputStream, outputStream);
+            inputStream.close();
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        @Override
-        public void onError(int id, Exception ex) {
-
-        }
-    });
-
     }
 
     private File createImageFile() throws IOException {

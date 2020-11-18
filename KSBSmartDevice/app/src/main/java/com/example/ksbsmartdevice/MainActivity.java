@@ -91,8 +91,8 @@ public class MainActivity extends AppCompatActivity {
     ImageView selectedImage;
     Button cameraBtn, galleryBtn;
     String currentPhotoPath;
-    private final String KEY = "AKIAS235O3R5GCMO33GX";
-    private final String SECRET = "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";
+    private final String KEY = "A";
+    private final String SECRET = "B";
     private BasicAWSCredentials credentials;
     private AmazonS3Client s3Client;
 

@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                             .s3Client(s3Client)
                             .build();
             TransferObserver uploadobserver =
-                    transferUtility.upload("orsstorage1","fileUri", new File(currentPhotoPath));
+                    transferUtility.upload("orsstorage1","image.png", new File(currentPhotoPath));
             uploadobserver.setTransferListener(new TransferListener() {
                 @Override
                 public void onStateChanged(int id, TransferState state) {
